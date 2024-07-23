@@ -2,33 +2,30 @@ import gradio as gr
 from huggingface_hub import InferenceClient
 from typing import List, Tuple
 import fitz  # PyMuPDF
-from sentence_transformers import SentenceTransformer, util
+from sentence_transformers import SentenceTransformer
 import numpy as np
 import faiss
 
 client = InferenceClient("HuggingFaceH4/zephyr-7b-beta")
 
-# Placeholder for the app's state
-class MyApp:
+class CorporateSecurityApp:
     def __init__(self) -> None:
         self.documents = []
         self.embeddings = None
         self.index = None
-        self.load_pdf("THEDIA1.pdf")
+        self.load_pdf("corporate_security_policy.pdf")  # Ensure this PDF is in your working directory
         self.build_vector_db()
 
     def load_pdf(self, file_path: str) -> None:
-        """Extracts text from a PDF file and stores it in the app's documents."""
         doc = fitz.open(file_path)
         self.documents = []
         for page_num in range(len(doc)):
             page = doc[page_num]
             text = page.get_text()
             self.documents.append({"page": page_num + 1, "content": text})
-        print("PDF processed successfully!")
+        print("CISO Handbook PDF processed successfully!")
 
     def build_vector_db(self) -> None:
-        """Builds a vector database using the content of the PDF."""
         model = SentenceTransformer('all-MiniLM-L6-v2')
         self.embeddings = model.encode([doc["content"] for doc in self.documents])
         self.index = faiss.IndexFlatL2(self.embeddings.shape[1])
@@ -36,14 +33,13 @@ class MyApp:
         print("Vector database built successfully!")
 
     def search_documents(self, query: str, k: int = 3) -> List[str]:
-        """Searches for relevant documents using vector similarity."""
         model = SentenceTransformer('all-MiniLM-L6-v2')
         query_embedding = model.encode([query])
         D, I = self.index.search(np.array(query_embedding), k)
         results = [self.documents[i]["content"] for i in I[0]]
-        return results if results else ["No relevant documents found."]
+        return results if results else ["No relevant security policy information found."]
 
-app = MyApp()
+app = CorporateSecurityApp()
 
 def respond(
     message: str,
@@ -53,7 +49,7 @@ def respond(
     temperature: float,
     top_p: float,
 ):
-    system_message = "You are a knowledgeable DBT coach. You always talk about one options at at a time. you add greetings and you ask questions like real counsellor. Remember you are helpful and a good listener. You are concise and never ask multiple questions, or give long response. You response like a human counsellor accurately and correctly. consider the users as your client. and practice verbal cues only where needed. Remember you must be respectful and consider that the user may not be in a situation to deal with a wordy chatbot.  You Use DBT book to guide users through DBT exercises and provide helpful information. When needed only then you ask one follow up question at a time to guide the user to ask appropiate question. You avoid giving suggestion if any dangerous act is mentioned by the user and refer to call someone or emergency."
+    system_message = "You are a knowledgeable Corporate Security Policy Advisor based on 'The CISO Handbook'. Provide concise, accurate information about corporate security policies. Be professional and focus on security best practices. Prioritize the company's security and compliance. If unsure, advise consulting official policy documents or the security department."
     messages = [{"role": "system", "content": system_message}]
 
     for val in history:
@@ -64,18 +60,17 @@ def respond(
 
     messages.append({"role": "user", "content": message})
 
-    # RAG - Retrieve relevant documents
     retrieved_docs = app.search_documents(message)
     context = "\n".join(retrieved_docs)
-    messages.append({"role": "system", "content": "Relevant documents: " + context})
+    messages.append({"role": "system", "content": "Relevant CISO Handbook information: " + context})
 
     response = ""
     for message in client.chat_completion(
         messages,
-        max_tokens=100,
+        max_tokens=150,
         stream=True,
-        temperature=0.98,
-        top_p=0.7,
+        temperature=0.7,
+        top_p=0.9,
     ):
         token = message.choices[0].delta.content
         response += token
@@ -85,22 +80,21 @@ demo = gr.Blocks()
 
 with demo:
     gr.Markdown(
-        "‼️Disclaimer: This chatbot is based on a DBT exercise book that is publicly available. and just to test RAG implementation.‼️"
+        "‼️Disclaimer: This chatbot is based on 'The CISO Handbook' and is for informational purposes only. For official policy information, please refer to your company's authorized resources.‼️"
     )
     
     chatbot = gr.ChatInterface(
         respond,
         examples=[
-            ["I feel overwhelmed with work."],
-            ["Can you guide me through a quick meditation?"],
-            ["How do I stop worrying about things I can't control?"],
-            ["What are some DBT skills for managing anxiety?"],
-            ["Can you explain mindfulness in DBT?"],
-            ["I am interested in DBT excercises"],
-            ["I feel restless. Please help me."],
-            ["I have destructive thoughts coming to my mind repetatively."]
+            ["What are the key components of a strong password policy?"],
+            ["How should we handle a potential data breach?"],
+            ["What are best practices for employee security training?"],
+            ["Can you explain the concept of defense in depth?"],
+            ["What should be included in an incident response plan?"],
+            ["How can we secure our remote work environment?"],
+            ["What are the main compliance standards we should be aware of?"],
         ],
-        title='Dialectical Behaviour Therapy Assistant👩‍⚕️🧘‍♀️'
+        title='Corporate Security Policy Advisor 🛡️💼'
     )
 
 if __name__ == "__main__":
