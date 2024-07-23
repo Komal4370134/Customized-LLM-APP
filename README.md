@@ -1,42 +1,59 @@
-# Customized-LLM-APP
+# Corporate Security Policy Advisor Chatbot
 
-Building a Retrieval-Augmented Generation (RAG) bot can significantly enhance the capabilities of a language model by incorporating external knowledge to generate more accurate and contextually relevant responses. This guide will walk you through creating a simple RAG bot using Gradio and the Hugging Face APIs.
+## Overview
 
-But how does RAG enhance LLM’s performance?
+The Corporate Security Policy Advisor is a chatbot designed to provide concise and accurate information about corporate security policies based on "The CISO Handbook." This application uses Retrieval-Augmented Generation (RAG) to enhance its responses with relevant content from the handbook.
 
-RAG improves the performance of language models by augmenting them with external documents. This method retrieves relevant documents based on the user query and combines them with the original prompt before passing them to the language model for response generation. This approach ensures that the language model can access up-to-date and domain-specific information without the need for extensive retraining.
+## Features
 
+- **PDF Processing:** Automatically extracts and processes text from the provided PDF, "The CISO Handbook."
+- **Vector Database:** Uses SentenceTransformer and FAISS to build a vector database for efficient document retrieval.
+- **Chat Interface:** Provides a user-friendly interface using Gradio for users to interact with the chatbot.
+- **Contextual Responses:** Combines user queries with relevant content from the handbook to generate informative responses.
 
+## Installation
 
-A common scenario of RAG helping LLM (Source)
+To run this application, you need to install the required dependencies. Create a virtual environment and install the dependencies from `requirements.txt`.
 
-The basic steps in RAG can be simplified as follows:
+```bash
+python -m venv env
+source env/bin/activate  # On Windows use `env\Scripts\activate`
+pip install -r requirements.txt
+```
 
-Input: The question to which the LLM system responds is referred to as the input. If no RAG is used, the LLM is directly used to respond to the question.
+## Usage
 
-Indexing: If RAG is used, then a series of related documents are indexed by chunking them first, generating embeddings of the chunks, and indexing them into a vector store. At inference, the query is also embedded in a similar way.
+1. Ensure the PDF "corporate_security_policy.pdf" is in the working directory.
+2. Run the `app.py` script to launch the Gradio interface.
 
+```bash
+python app.py
+```
 
-Basic retrieval steps in RAG. (Source)
+## Project Structure
 
-Retrieval: The relevant documents are obtained by comparing the query against the indexed vectors, also denoted as “Relevant Documents”.
+- `app.py`: Main application file containing the logic for loading the PDF, building the vector database, and handling user interactions.
+- `requirements.txt`: Lists the required Python libraries.
+- `corporate_security_policy.pdf`: The PDF document used as the knowledge base for the chatbot.
 
-Generation: The relevant documents are combined with the original prompt as additional context. The combined text and prompt are then passed to the model for response generation which is then prepared as the final output of the system to the user.
+## Example Queries
 
-In the example provided, using the model directly fails to respond to the question due to a lack of knowledge of current events. On the other hand, when using RAG, the system can pull the relevant information needed for the model to answer the question appropriately. (Source)
+- What are the key components of a strong password policy?
+- How should we handle a potential data breach?
+- What are best practices for employee security training?
+- Can you explain the concept of defense in depth?
+- What should be included in an incident response plan?
+- How can we secure our remote work environment?
+- What are the main compliance standards we should be aware of?
 
-Now Let’s Build a Chatbot using RAG:
+## License
 
-I have used Zephyr LLM model and all-MiniLM-L6-v2 sentence transformer model. This sentence-transformers model maps sentences & paragraphs to a 384 dimensional dense vector space and can be used for tasks like clustering or semantic search.
+This project is for informational purposes only and is based on "The CISO Handbook" by Michael Gentile, CISSP, Ronald D. Collette, CISSP, and Thomas D. August, CISSP. For official policy information, please refer to your company's authorized resources.
 
-The all-* models were trained on all available training data (more than 1 billion training pairs) and are designed as general purpose models. The all-mpnet-base-v2 model provides the best quality, while all-MiniLM-L6-v2 is 5 times faster and still offers good quality. Toggle All models to see all evaluated original models.
+## Disclaimer
 
-We need the following ingredients:
+‼️Disclaimer: This chatbot is based on 'The CISO Handbook' and is for informational purposes only. For official policy information, please refer to your company's authorized resources.‼️
 
-1. A PDF as your knowledgebase
+---
 
-2. A requirements.txt file
-
-3. An app.py file
-
-4. An account on Hugging Face (See this blog to learn about building a LLM chatbot in Hugging Face)
+Feel free to contribute to this project by submitting issues or pull requests on GitHub.
